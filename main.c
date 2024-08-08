@@ -7,8 +7,8 @@
 #define MIN_PASSWD_LENGTH 1
 
 char *generate_password(int passwd_length) {
-    // Dynamically allocates memory for the password array and
-    // adds 1 null byte ('\0') for the string termination.
+    // Dynamically allocates memory for the password array and adds 1 null
+    // byte ('\0') for the string termination.
     char *password = (char *)calloc(passwd_length + 1, sizeof(char));
 
     if (password == NULL) {
