@@ -5,6 +5,7 @@
 #define MIN_ARGS_LENGTH 2
 #define MAX_ARGS_LENGTH 3
 #define MIN_PASSWD_LENGTH 8
+#define MAX_PASSWD_LENGTH 50
 #define MIN_COMPLXT_LEVEL 1
 #define MAX_COMPLXT_LEVEL 4
 #define CHARS_SET_SIZE 95
@@ -90,6 +91,11 @@ int main(int argc, char *argv[]) {
 
     if (passwd_length < MIN_PASSWD_LENGTH) {
         printf("Password length must be at least 8 characters\n");
+        return EXIT_FAILURE;
+    }
+
+    if (passwd_length > MAX_PASSWD_LENGTH) {
+        printf("Password length must be at most 50 characters\n");
         return EXIT_FAILURE;
     }
 
