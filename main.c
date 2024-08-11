@@ -15,7 +15,7 @@ char *generate_password(int passwd_length, int complxt_level) {
     // null byte ('\0') for the string termination.
     char *random_passwd = (char *)calloc(passwd_length + 1, sizeof(char));
 
-    if (random_passwd == NULL) {
+    if (!random_passwd) {
         perror("Memory allocation failed");
         exit(EXIT_FAILURE);
     }
@@ -66,7 +66,7 @@ char *generate_password(int passwd_length, int complxt_level) {
 
 int main(int argc, char *argv[]) {
     if (argc < MIN_ARGS_LENGTH) {
-        printf("Usage: %s LENGTH COMPLEXITY\n", argv[0]);
+        printf("Usage: %s <length> <complexity>\n", argv[0]);
         return EXIT_FAILURE;
     }
 
@@ -76,12 +76,12 @@ int main(int argc, char *argv[]) {
     }
 
     if (!argv[1]) {
-        printf("LENGTH argument is required\n");
+        printf("<length> argument is required\n");
         return EXIT_FAILURE;
     }
 
     if (!argv[2]) {
-        printf("COMPLEXITY argument is required\n");
+        printf("<complexity> argument is required\n");
         return EXIT_FAILURE;
     }
 
@@ -110,8 +110,6 @@ int main(int argc, char *argv[]) {
     }
 
     char *random_passwd = generate_password(passwd_length, complxt_level);
-
-    printf("Password: ");
 
     // Prints each character of the password.
     for (int index = 0; index < passwd_length; index++) {
