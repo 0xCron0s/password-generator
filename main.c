@@ -1,21 +1,58 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <argp.h>
 
-#define MIN_ARGS_LENGTH 2
-#define MAX_ARGS_LENGTH 3
-#define MIN_PASSWD_LENGTH 8
-#define MAX_PASSWD_LENGTH 50
-#define MIN_COMPLXT_LEVEL 1
-#define MAX_COMPLXT_LEVEL 4
 #define CHARS_SET_SIZE 95
 
-char *generate_password(int passwd_length, int complxt_level) {
-    // Dynamically allocates memory for the password array and adds one more
-    // null byte ('\0') for the string termination.
-    char *random_passwd = (char *)calloc(passwd_length + 1, sizeof(char));
+static char doc[] = "Simple password generator.";
+static char args_doc[] = "";
 
-    if (!random_passwd) {
+static struct argp_option options[] = {
+    {"length", 'l', "NUMBER", 0, "Set password length"},
+    {"complexity", 'c', "NUMBER", 0, "Set complexity level"},
+    {0}
+};
+
+struct arguments {
+    int length;
+    int complexity;
+};
+
+static error_t parse_opt(int key, char *arg, struct argp_state *state) {
+    struct arguments *arguments = state->input;
+
+    int length;
+    int complexity;
+
+    switch (key) {
+        case 'l':
+            length = atoi(arg);
+            if (length < 8 || length > 50) {
+                argp_error(state, "Password length must be between 8 and 50.");
+            }
+            arguments->length = length;
+            break;
+        case 'c':
+            complexity = atoi(arg);
+            if (complexity < 1 || complexity > 4) {
+                argp_error(state, "Complexity level must be between 1 and 4.");
+            }
+            arguments->complexity = complexity;
+            break;
+        default:
+            return ARGP_ERR_UNKNOWN;
+    }
+
+    return EXIT_SUCCESS;
+}
+
+static struct argp argp = {options, parse_opt, args_doc, doc};
+
+char *generate_password(int length, int complexity) {
+    char *password = (char *)calloc(length + 1, sizeof(char));
+
+    if (!password) {
         perror("Memory allocation failed");
         exit(EXIT_FAILURE);
     }
@@ -30,8 +67,7 @@ char *generate_password(int passwd_length, int complxt_level) {
     int lower_index;
     int upper_index;
 
-    // Sets the complexity level of the password.
-    switch (complxt_level) {
+    switch (complexity) {
         case 1:
             lower_index = 10;
             upper_index = 36;
@@ -50,73 +86,35 @@ char *generate_password(int passwd_length, int complxt_level) {
             break;
     }
 
-    // Sets the seed for the rand() function based on the current time.
     srand(time(NULL));
 
     int random_index;
 
-    // Generates a random character and adds it on the password array.
-    for (int index = 0; index < passwd_length; index++) {
+    for (int index = 0; index < length; index++) {
         random_index = rand() % (upper_index - lower_index) + lower_index;
-        random_passwd[index] = characters_set[random_index];
+        password[index] = characters_set[random_index];
     }
 
-    return random_passwd;
+    return password;
 }
 
-int main(int argc, char *argv[]) {
-    if (argc < MIN_ARGS_LENGTH) {
-        printf("Usage: %s <length> <complexity>\n", argv[0]);
-        return EXIT_FAILURE;
-    }
+int main(int argc, char **argv) {
+    struct arguments arguments;
 
-    if (argc > MAX_ARGS_LENGTH) {
-        printf("Too many arguments\n");
-        return EXIT_FAILURE;
-    }
+    arguments.length = 8;
+    arguments.complexity = 1;
 
-    if (!argv[1]) {
-        printf("<length> argument is required\n");
-        return EXIT_FAILURE;
-    }
+    argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
-    if (!argv[2]) {
-        printf("<complexity> argument is required\n");
-        return EXIT_FAILURE;
-    }
+    char *password = generate_password(arguments.length, arguments.complexity);
 
-    // Converts the arguments to an integer variable.
-    int passwd_length = atoi(argv[1]);
-    int complxt_level = atoi(argv[2]);
-
-    if (passwd_length < MIN_PASSWD_LENGTH) {
-        printf("Password length must be at least 8 characters\n");
-        return EXIT_FAILURE;
-    }
-
-    if (passwd_length > MAX_PASSWD_LENGTH) {
-        printf("Password length must be at most 50 characters\n");
-        return EXIT_FAILURE;
-    }
-
-    if (complxt_level < MIN_COMPLXT_LEVEL) {
-        printf("Password complexity must be at least level 1\n");
-        return EXIT_FAILURE;
-    }
-
-    if (complxt_level > MAX_COMPLXT_LEVEL) {
-        printf("Password complexity must be at most level 4\n");
-        return EXIT_FAILURE;
-    }
-
-    char *random_passwd = generate_password(passwd_length, complxt_level);
-
-    // Prints each character of the password.
-    for (int index = 0; index < passwd_length; index++) {
-        printf("%c", random_passwd[index]);
+    for (int index = 0; index < arguments.length; index++) {
+        printf("%c", password[index]);
     }
 
     printf("\n");
 
-    return EXIT_SUCCESS;
+    free(password);
+
+    exit(EXIT_SUCCESS);
 }
