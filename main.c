@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <time.h>
 #include <argp.h>
-
-#define CHARS_SET_SIZE 95
 
 static char doc[] = "Simple password generator.";
 static char args_doc[] = "";
@@ -44,7 +43,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
             return ARGP_ERR_UNKNOWN;
     }
 
-    return EXIT_SUCCESS;
+    return 0;
 }
 
 static struct argp argp = {options, parse_opt, args_doc, doc};
@@ -57,48 +56,35 @@ char *generate_password(int length, int complexity) {
         exit(EXIT_FAILURE);
     }
 
-    char characters_set[CHARS_SET_SIZE] = {
-        "0123456789"
-        "abcdefghijklmnopqrstuvwxyz"
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
-    };
-
-    int lower_index;
-    int upper_index;
+    char *characters;
 
     switch (complexity) {
         case 1:
-            lower_index = 10;
-            upper_index = 36;
+            characters = "abcdefghijklmnopqrstuvwxyz";
             break;
         case 2:
-            lower_index = 10;
-            upper_index = 56;
+            characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
             break;
         case 3:
-            lower_index = 0;
-            upper_index = 56;
+            characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             break;
         case 4:
-            lower_index = 0;
-            upper_index = 94;
+            characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
             break;
     }
 
+    int characters_total = strlen(characters);
+
     srand(time(NULL));
 
-    int random_index;
-
     for (int index = 0; index < length; index++) {
-        random_index = rand() % (upper_index - lower_index) + lower_index;
-        password[index] = characters_set[random_index];
+        password[index] = characters[rand() % characters_total];
     }
 
     return password;
 }
 
-int main(int argc, char **argv) {
+void main(int argc, char **argv) {
     struct arguments arguments;
 
     arguments.length = 8;
@@ -108,11 +94,7 @@ int main(int argc, char **argv) {
 
     char *password = generate_password(arguments.length, arguments.complexity);
 
-    for (int index = 0; index < arguments.length; index++) {
-        printf("%c", password[index]);
-    }
-
-    printf("\n");
+    puts(password);
 
     free(password);
 
