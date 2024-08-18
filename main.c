@@ -66,7 +66,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 static struct argp argp = {options, parse_opt, args_doc, doc};
 
 char *generate_password(int length, int complexity, bool avoid_repeats) {
-    char *password = (char *)calloc(length + 1, sizeof(char));
+    char *password = (char *)malloc((length + 1) * sizeof(char));
 
     if (!password) {
         perror("Memory allocation failed");
@@ -113,6 +113,8 @@ char *generate_password(int length, int complexity, bool avoid_repeats) {
             password[index] = characters[rand() % characters_total];
         }
     }
+
+    password[length] = '\0';
 
     return password;
 }
