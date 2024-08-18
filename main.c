@@ -10,6 +10,7 @@ static char args_doc[] = "LENGTH COMPLEXITY";
 
 static struct argp_option options[] = {
     {"avoid-repeats", 'a', 0, 0, "Avoid repeated characters"},
+    {"quantity", 'q', "NUMBER", 0, "Define how many passwords will be generated"},
     {0}
 };
 
@@ -17,6 +18,7 @@ struct arguments {
     int length;
     int complexity;
     int avoid_repeats;
+    int quantity;
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
@@ -24,10 +26,18 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 
     int length;
     int complexity;
+    int quantity;
 
     switch (key) {
         case 'a':
             arguments->avoid_repeats = true;
+            break;
+        case 'q':
+            quantity = atoi(arg);
+            if (quantity < 1) {
+                argp_error(state, "Quantity value must be a positive number.");
+            }
+            arguments->quantity = quantity;
             break;
         case ARGP_KEY_ARG:
             if (state->arg_num >= 2) {
@@ -92,8 +102,6 @@ char *generate_password(int length, int complexity, bool avoid_repeats) {
 
     int characters_total = strlen(characters);
 
-    srand(time(NULL));
-
     if (avoid_repeats) {
         int index = 0;
         char random_char;
@@ -123,14 +131,17 @@ void main(int argc, char **argv) {
     struct arguments arguments;
 
     arguments.avoid_repeats = false;
+    arguments.quantity = 1;
 
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
-    char *password = generate_password(arguments.length, arguments.complexity, arguments.avoid_repeats);
+    srand(time(NULL));
 
-    puts(password);
-
-    free(password);
+    for (int counter = 0; counter < arguments.quantity; counter++) {
+        char *password = generate_password(arguments.length, arguments.complexity, arguments.avoid_repeats);
+        puts(password);
+        free(password);
+    }
 
     exit(EXIT_SUCCESS);
 }
