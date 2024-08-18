@@ -11,14 +11,16 @@ static char args_doc[] = "LENGTH COMPLEXITY";
 static struct argp_option options[] = {
     {"avoid-repeats", 'a', 0, 0, "Avoid repeated characters"},
     {"quantity", 'q', "NUMBER", 0, "Define how many passwords will be generated"},
+    {"output", 'o', "FILE", 0, "Write output data to FILE"},
     {0}
 };
 
 struct arguments {
     int length;
     int complexity;
-    int avoid_repeats;
+    bool avoid_repeats;
     int quantity;
+    char *output_file;
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
@@ -38,6 +40,9 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
                 argp_error(state, "Quantity value must be a positive number.");
             }
             arguments->quantity = quantity;
+            break;
+        case 'o':
+            arguments->output_file = arg;
             break;
         case ARGP_KEY_ARG:
             if (state->arg_num >= 2) {
@@ -79,7 +84,7 @@ char *generate_password(int length, int complexity, bool avoid_repeats) {
     char *password = (char *)malloc((length + 1) * sizeof(char));
 
     if (!password) {
-        perror("Memory allocation failed");
+        perror("Memory allocation error");
         exit(EXIT_FAILURE);
     }
 
@@ -132,15 +137,36 @@ void main(int argc, char **argv) {
 
     arguments.avoid_repeats = false;
     arguments.quantity = 1;
+    arguments.output_file = NULL;
 
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
     srand(time(NULL));
 
-    for (int counter = 0; counter < arguments.quantity; counter++) {
-        char *password = generate_password(arguments.length, arguments.complexity, arguments.avoid_repeats);
-        puts(password);
-        free(password);
+    char *password;
+
+    if (arguments.output_file) {
+        FILE *file = fopen(arguments.output_file, "w");
+
+        if (!file) {
+            perror("File opening error");
+            exit(EXIT_FAILURE);
+        }
+
+        for (int counter = 0; counter < arguments.quantity; counter++) {
+            password = generate_password(arguments.length, arguments.complexity, arguments.avoid_repeats);
+            fwrite(password, sizeof(char), arguments.length, file);
+            fwrite("\n", sizeof(char), 1, file);
+            free(password);
+        }
+
+        fclose(file);
+    } else {
+        for (int counter = 0; counter < arguments.quantity; counter++) {
+            password = generate_password(arguments.length, arguments.complexity, arguments.avoid_repeats);
+            puts(password);
+            free(password);
+        }
     }
 
     exit(EXIT_SUCCESS);
