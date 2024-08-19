@@ -10,8 +10,8 @@ static char args_doc[] = "LENGTH COMPLEXITY";
 
 static struct argp_option options[] = {
     {"avoid-repeats", 'a', 0, 0, "Avoid repeated characters"},
-    {"quantity", 'q', "NUMBER", 0, "Define how many passwords will be generated"},
     {"output", 'o', "FILE", 0, "Write output data to FILE"},
+    {"quantity", 'q', "NUMBER", 0, "Define how many passwords will be generated"},
     {0}
 };
 
@@ -19,8 +19,8 @@ struct arguments {
     int length;
     int complexity;
     bool avoid_repeats;
-    int quantity;
     char *output_file;
+    int quantity;
 };
 
 static error_t parse_opt(int key, char *arg, struct argp_state *state) {
@@ -34,15 +34,15 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
         case 'a':
             arguments->avoid_repeats = true;
             break;
+        case 'o':
+            arguments->output_file = arg;
+            break;
         case 'q':
             quantity = atoi(arg);
             if (quantity < 1) {
                 argp_error(state, "Quantity value must be a positive number.");
             }
             arguments->quantity = quantity;
-            break;
-        case 'o':
-            arguments->output_file = arg;
             break;
         case ARGP_KEY_ARG:
             if (state->arg_num >= 2) {
@@ -88,31 +88,31 @@ char *generate_password(int length, int complexity, bool avoid_repeats) {
         exit(EXIT_FAILURE);
     }
 
-    char *characters;
+    char *charset;
 
     switch (complexity) {
         case 1:
-            characters = "abcdefghijklmnopqrstuvwxyz";
+            charset = "abcdefghijklmnopqrstuvwxyz";
             break;
         case 2:
-            characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
             break;
         case 3:
-            characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             break;
         case 4:
-            characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+            charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
             break;
     }
 
-    int characters_total = strlen(characters);
+    int charset_size = strlen(charset);
 
     if (avoid_repeats) {
         int index = 0;
         char random_char;
 
         while (index < length) {
-            random_char = characters[rand() % characters_total];
+            random_char = charset[rand() % charset_size];
 
             if (strchr(password, random_char)) {
                 continue;
@@ -123,7 +123,7 @@ char *generate_password(int length, int complexity, bool avoid_repeats) {
         }
     } else {
         for (int index = 0; index < length; index++) {
-            password[index] = characters[rand() % characters_total];
+            password[index] = charset[rand() % charset_size];
         }
     }
 
@@ -136,8 +136,8 @@ void main(int argc, char **argv) {
     struct arguments arguments;
 
     arguments.avoid_repeats = false;
-    arguments.quantity = 1;
     arguments.output_file = NULL;
+    arguments.quantity = 1;
 
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
