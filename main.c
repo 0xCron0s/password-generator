@@ -5,10 +5,10 @@
 #include <time.h>
 #include <argp.h>
 
-static char doc[] = "Simple password generator.";
-static char args_doc[] = "LENGTH COMPLEXITY";
+char doc[] = "Simple password generator.";
+char args_doc[] = "LENGTH COMPLEXITY";
 
-static struct argp_option options[] = {
+struct argp_option options[] = {
     {"avoid-repeats", 'a', 0, 0, "Avoid repeated characters"},
     {"output", 'o', "FILE", 0, "Write output data to FILE"},
     {"quantity", 'q', "NUMBER", 0, "Define how many passwords will be generated"},
@@ -23,7 +23,7 @@ struct arguments {
     int quantity;
 };
 
-static error_t parse_opt(int key, char *arg, struct argp_state *state) {
+error_t parse_opt(int key, char *arg, struct argp_state *state) {
     struct arguments *arguments = state->input;
 
     int length;
@@ -78,7 +78,7 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
     return 0;
 }
 
-static struct argp argp = {options, parse_opt, args_doc, doc};
+struct argp argp = {options, parse_opt, args_doc, doc};
 
 char *generate_password(int length, int complexity, bool avoid_repeats) {
     char *password = (char *)malloc((length + 1) * sizeof(char));
